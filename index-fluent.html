@@ -721,12 +721,11 @@
     }
     
     .date-picker-row {
-      flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
     
     .date-picker-row fluent-select {
-      width: 100%;
+      min-width: 0;
     }
     
     .btn-group {
@@ -806,7 +805,7 @@
       <div class="form-field">
         <label>出生年月</label>
         <div class="date-picker-row">
-          <fluent-select id="birthYear" style="flex:1">
+          <fluent-select id="birthYear" style="flex:2">
             <!-- 年份选项由JS动态生成 -->
           </fluent-select>
           <fluent-select id="birthMonth" style="flex:1">
