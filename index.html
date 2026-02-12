@@ -823,19 +823,6 @@
         </p>
       </div>
 
-      <div class="form-field" id="policy4050Field">
-        <label>是否申请4050社保补贴</label>
-        <fluent-select id="policy4050">
-          <fluent-option value="no">否</fluent-option>
-          <fluent-option value="yes">是</fluent-option>
-        </fluent-select>
-        <p class="hint">
-          4050政策：女满40岁/男满50岁的灵活就业人员可申请社保补贴<br/>
-          • 北京户籍 + 失业登记 + 灵活就业<br/>
-          • 补贴比例约 50%-70%，最长补3年（距退休≤5年可延长至退休）
-        </p>
-      </div>
-
       <div class="btn-group">
         <button class="secondary-btn" onclick="prevStep(3)">上一步</button>
         <button class="primary-btn" onclick="calculate()">查看结果</button>
@@ -864,25 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // 设置默认值
   yearSelect.value = '1988';
-  
-  // 监听户籍变化，控制4050选项显示
-  const hukouSelect = document.getElementById('hukou');
-  hukouSelect.addEventListener('change', update4050Visibility);
 });
-
-// 根据户籍状态更新4050选项可见性
-function update4050Visibility() {
-  const hukou = document.getElementById('hukou').value;
-  const policy4050Field = document.getElementById('policy4050Field');
-  const policy4050Select = document.getElementById('policy4050');
-  
-  if (hukou === 'yes') {
-    policy4050Field.classList.remove('hidden');
-  } else {
-    policy4050Field.classList.add('hidden');
-    policy4050Select.value = 'no'; // 非北京户籍自动设为否
-  }
-}
 
 function showForm() {
   document.getElementById('home').classList.add('hidden');
@@ -922,11 +891,6 @@ function goToStep(step) {
     } else {
       indicator.innerHTML = i;
     }
-  }
-  
-  // 进入步骤3时，根据户籍状态更新4050选项显示
-  if (step === 3) {
-    update4050Visibility();
   }
   
   currentStep = step;
@@ -1110,7 +1074,7 @@ function calc4050Subsidy(gender, quitAge, claimAge, flexMonthly, hukou) {
 // stopAtMinYears: true=缴满最低年限即停，false=缴到退休
 // claimAge: 实际领取养老金的年龄（弹性退休）
 function computeRetirement(quitAge, stopAtMinYears = false, claimAge = null) {
-  const { birthYear, birthMonth, gender, hukou, yearsPaidNow, balanceNow, policy4050 } = userData;
+  const { birthYear, birthMonth, gender, hukou, yearsPaidNow, balanceNow } = userData;
   
   const minBase = 6326;
   const flexMonthly = (hukou === 'yes') ? 1800 : 2800;
@@ -1153,15 +1117,8 @@ function computeRetirement(quitAge, stopAtMinYears = false, claimAge = null) {
   const yearlyToAccountFlex = monthlyToAccount * 12;
   let pensionFlexCost = flexMonthly * 12 * yearsFlexPay; // 养老+医保综合费用
   
-  // 4050政策补贴计算
-  let subsidy4050 = { eligible: false, subsidyYears: 0, subsidyAmount: 0, subsidyRate: 0 };
-  if (policy4050) {
-    subsidy4050 = calc4050Subsidy(gender, quitAge, actualClaimAge, flexMonthly, hukou);
-    if (subsidy4050.eligible) {
-      pensionFlexCost -= subsidy4050.subsidyAmount;
-      pensionFlexCost = Math.max(0, pensionFlexCost);
-    }
-  }
+  // 4050政策补贴计算（始终计算潜在补贴，但不从成本中扣除）
+  const subsidy4050 = calc4050Subsidy(gender, quitAge, actualClaimAge, flexMonthly, hukou);
   
   const totalYears = yearsAtQuit + yearsFlexPay;
   const finalBalance = balanceAtQuit + yearlyToAccountFlex * yearsFlexPay;
@@ -1208,7 +1165,7 @@ function computeRetirement(quitAge, stopAtMinYears = false, claimAge = null) {
     totalReceived, netGain, avgYearlyToAccount, yearlyToAccountFlex, balanceNow,
     stopAtMinYears, stopPayAge, yearsWaiting,
     actualClaimAge, flexRange,
-    subsidy4050, policy4050
+    subsidy4050
   };
 }
 
@@ -1232,12 +1189,9 @@ function calculate() {
   const yearsPaidNow = parseFloat(yearsEl.value || yearsEl.control?.value || 0);
   const balanceNow = parseFloat(balanceEl.value || balanceEl.control?.value || 0);
   const quitAge = parseFloat(quitAgeEl.value || quitAgeEl.control?.value || 0);
-  
-  const policy4050El = document.getElementById('policy4050');
-  const policy4050 = policy4050El.value === 'yes';
 
   // 保存用户数据
-  userData = { birthYear, birthMonth, gender, hukou, yearsPaidNow, balanceNow, policy4050 };
+  userData = { birthYear, birthMonth, gender, hukou, yearsPaidNow, balanceNow };
 
   showResult(quitAge);
 }
@@ -1293,7 +1247,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
 
     <div class="stat-card">
       <!-- 弹性退休选择 -->
-      <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 12px;">🎯 选择领取养老金年龄</h3>
+      <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 12px;">选择领取养老金年龄</h3>
       <div style="display: flex; gap: 12px; margin-bottom: 16px;">
         ${claimAgeOptions.map(opt => `
           <button class="claim-age-btn ${opt.isCurrent ? 'active' : ''}" 
@@ -1329,8 +1283,21 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
         <!-- 年份行 -->
         <div class="timeline-years">
           <span>${nowYear}</span>
-          ${yearsWorking > 0.1 && (yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) >= 0.2 ? `<span class="year-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitYear}</span>` : ''}
-          ${r.yearsWaiting > 0.1 && ((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) <= 0.8 ? `<span class="year-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${stopPayYear}</span>` : ''}
+          ${(() => {
+            const total = yearsWorking + yearsFlexPay + r.yearsWaiting;
+            const quitPos = yearsWorking / total;
+            const stopPos = (yearsWorking + yearsFlexPay) / total;
+            const showQuit = yearsWorking > 0.1 && quitPos >= 0.15 && quitPos <= 0.85;
+            const showStop = r.yearsWaiting > 0.1 && stopPos >= 0.15 && stopPos <= 0.85;
+            const tooClose = showQuit && showStop && Math.abs(stopPos - quitPos) < 0.15;
+            if (tooClose) {
+              return `<span class="year-mid" style="left: ${quitPos * 100}%;">${quitYear}</span>`;
+            }
+            let result = '';
+            if (showQuit) result += `<span class="year-mid" style="left: ${quitPos * 100}%;">${quitYear}</span>`;
+            if (showStop) result += `<span class="year-mid" style="left: ${stopPos * 100}%;">${stopPayYear}</span>`;
+            return result;
+          })()}
           <span>${claimYear}</span>
         </div>
         
@@ -1350,8 +1317,22 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
         <!-- 年龄/事件行 -->
         <div class="timeline-events">
           <span>${Math.round(ageNow)}岁</span>
-          ${yearsWorking > 0.1 && (yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) >= 0.2 ? `<span class="event-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitAge}岁·辞职</span>` : ''}
-          ${r.yearsWaiting > 0.1 && ((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) <= 0.8 ? `<span class="event-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${Math.round(r.stopPayAge)}岁·停缴</span>` : ''}
+          ${(() => {
+            const total = yearsWorking + yearsFlexPay + r.yearsWaiting;
+            const quitPos = yearsWorking / total;
+            const stopPos = (yearsWorking + yearsFlexPay) / total;
+            const showQuit = yearsWorking > 0.1 && quitPos >= 0.15 && quitPos <= 0.85;
+            const showStop = r.yearsWaiting > 0.1 && stopPos >= 0.15 && stopPos <= 0.85;
+            // 如果两个位置太接近（差距<15%），合并显示或只显示辞职
+            const tooClose = showQuit && showStop && Math.abs(stopPos - quitPos) < 0.15;
+            if (tooClose) {
+              return `<span class="event-mid" style="left: ${quitPos * 100}%;">${quitAge}岁·辞职停缴</span>`;
+            }
+            let result = '';
+            if (showQuit) result += `<span class="event-mid" style="left: ${quitPos * 100}%;">${quitAge}岁·辞职</span>`;
+            if (showStop) result += `<span class="event-mid" style="left: ${stopPos * 100}%;">${Math.round(r.stopPayAge)}岁·停缴</span>`;
+            return result;
+          })()}
           <span>${actualClaimAge}岁·领取</span>
         </div>
         
@@ -1364,27 +1345,17 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
       </div>
 
       <!-- 4050政策补贴提示 -->
-      ${r.policy4050 && r.subsidy4050.eligible ? `
+      ${r.subsidy4050.eligible ? `
       <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 12px 16px; margin-top: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">🎉</span>
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <span style="font-size: 20px;">💡</span>
           <div>
-            <strong style="color: #047857;">4050政策补贴</strong>
+            <strong style="color: #047857;">省钱提示：你符合4050政策条件</strong>
             <p style="margin: 4px 0 0; font-size: 13px; color: #065f46;">
-              预计可享受 ${r.subsidy4050.subsidyYears.toFixed(1)} 年补贴，节省约 <strong>¥${(r.subsidy4050.subsidyAmount/10000).toFixed(1)} 万</strong>（补贴比例 ${Math.round(r.subsidy4050.subsidyRate*100)}%）
+              如申请4050社保补贴，预计可节省约 <strong>¥${(r.subsidy4050.subsidyAmount/10000).toFixed(1)} 万</strong>（${r.subsidy4050.subsidyYears.toFixed(1)}年 × 补贴${Math.round(r.subsidy4050.subsidyRate*100)}%）
             </p>
-          </div>
-        </div>
-      </div>
-      ` : ''}
-      ${r.policy4050 && !r.subsidy4050.eligible ? `
-      <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">⚠️</span>
-          <div>
-            <strong style="color: #92400e;">4050政策暂不适用</strong>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #78350f;">
-              ${r.subsidy4050.reason || (r.hukou !== 'yes' ? '非北京户籍无法以灵活就业形式缴纳，不能申请4050补贴' : '条件不符合')}
+            <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">
+              申请条件：北京户籍 + 失业登记 + 灵活就业缴纳社保
             </p>
           </div>
         </div>
@@ -1394,14 +1365,17 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
       <!-- 核心数据：成本与收益 -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
         <div>
-          <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 8px;">💰 辞职后总成本</h3>
+          <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 8px;">辞职后总成本</h3>
           <div class="stat-value negative" style="font-size: 28px;">¥${(totalFlexCost/10000).toFixed(1)} 万</div>
           <p style="font-size: 12px; color: var(--colorNeutralForeground3); margin: 4px 0 0;">
-            社保 ¥${(r.pensionFlexCost/10000).toFixed(1)}万${r.subsidy4050.eligible ? ` (已扣4050补贴)` : ''}${r.medicalExtraCost > 0 ? ` + 医保补缴 ¥${(r.medicalExtraCost/10000).toFixed(1)}万` : ''}
+            社保 ¥${(r.pensionFlexCost/10000).toFixed(1)}万${r.medicalExtraCost > 0 ? ` + 医保补缴 ¥${(r.medicalExtraCost/10000).toFixed(1)}万` : ''}
           </p>
+          ${r.subsidy4050.eligible ? `<p style="font-size: 12px; color: #047857; margin: 4px 0 0;">
+            💡 申请4050后仅需 <strong>¥${((totalFlexCost - r.subsidy4050.subsidyAmount)/10000).toFixed(1)}万</strong>（省¥${Math.round(flexMonthly * r.subsidy4050.subsidyRate)}/月 × ${r.subsidy4050.subsidyYears.toFixed(1)}年）
+          </p>` : ''}
         </div>
         <div>
-          <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 8px;">📈 月养老金</h3>
+          <h3 style="font-size: 14px; color: var(--colorNeutralForeground2); margin: 0 0 8px;">月养老金</h3>
           <div class="stat-value positive" style="font-size: 28px;">¥${Math.round(monthlyPension)}</div>
           <p style="font-size: 12px; color: var(--colorNeutralForeground3); margin: 4px 0 0;">累计 ${totalYears.toFixed(1)} 年 · 今日购买力 ≈ ¥${Math.round(realPension)}</p>
         </div>
@@ -1420,7 +1394,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
     </div>
 
     <div class="stat-card">
-      <h2>📋 养老保险缴费年限</h2>
+      <h2>养老保险缴费年限</h2>
       ${pensionOK 
         ? '<span class="badge success">满足最低缴费年限，可正常领取养老金</span>' 
         : `<span class="badge danger">还差 ${pensionShortfall.toFixed(1)} 年才能领取养老金</span>`}
@@ -1432,7 +1406,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
     </div>
 
     <div class="stat-card">
-      <h2>🏥 医保状态</h2>
+      <h2>医保状态</h2>
       ${medicalOK 
         ? '<span class="badge success">退休后终身享受医保</span>' 
         : `<span class="badge danger">还差 ${medicalShortfall.toFixed(1)} 年，需补缴 ¥${(r.medicalExtraCost/10000).toFixed(1)} 万</span>`}
@@ -1444,14 +1418,14 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
     </div>
 
     <div class="stat-card">
-      <h2>📋 总结</h2>
+      <h2>总结</h2>
       ${!pensionOK ? `<p style="color: var(--colorStatusDangerForeground1);"><strong>⚠️ 注意：</strong>你的累计缴费年限不足 20 年，${claimYear}年领取养老金时无法正常领取！需延长缴费或一次性补缴。</p>` : ''}
       <p><strong>你将付出：</strong></p>
       <ul class="summary-list">
-        <li>社保自缴 ¥${(r.pensionFlexCost/10000).toFixed(1)} 万（${yearsFlexPay.toFixed(1)}年 × ¥${flexMonthly}/月${r.subsidy4050.eligible ? ` - 4050补贴 ¥${(r.subsidy4050.subsidyAmount/10000).toFixed(1)}万` : ''}）</li>
-        ${r.subsidy4050.eligible ? `<li style="color: var(--colorStatusSuccessForeground1);">🎉 4050政策补贴 ¥${(r.subsidy4050.subsidyAmount/10000).toFixed(1)} 万（${r.subsidy4050.subsidyYears.toFixed(1)}年 × ${Math.round(r.subsidy4050.subsidyRate*100)}%）</li>` : ''}
+        <li>社保自缴 ¥${(r.pensionFlexCost/10000).toFixed(1)} 万（${yearsFlexPay.toFixed(1)}年 × ¥${flexMonthly}/月）</li>
+        ${r.subsidy4050.eligible ? `<li style="color: var(--colorStatusSuccessForeground1);">💡 如申请4050补贴可节省 ¥${(r.subsidy4050.subsidyAmount/10000).toFixed(1)} 万</li>` : ''}
         ${!medicalOK ? `<li>医保补缴 ¥${(r.medicalExtraCost/10000).toFixed(1)} 万（${medicalShortfall.toFixed(1)}年 × ¥${r.medicalMonthly}/月）</li>` : ''}
-        <li><strong>总计 ¥${(totalFlexCost/10000).toFixed(1)} 万</strong></li>
+        <li><strong>总计 ¥${(totalFlexCost/10000).toFixed(1)} 万</strong>${r.subsidy4050.eligible ? ` （若申请4050可附至 ¥${((totalFlexCost - r.subsidy4050.subsidyAmount)/10000).toFixed(1)}万）` : ''}</li>
         <li>如投资理财（4%年化），${yearsFlexPay.toFixed(0)}年后约 ¥${(totalFlexCost*Math.pow(1.04,yearsFlexPay)/10000).toFixed(1)} 万</li>
       </ul>
       <p><strong>你将获得：</strong></p>
@@ -1464,7 +1438,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
     </div>
 
     <div class="stat-card">
-      <h2>🔄 尝试其他辞职年龄</h2>
+      <h2>尝试其他辞职年龄</h2>
       <p class="hint">调整辞职年龄，比较不同方案的差异</p>
       <div style="display: flex; gap: 12px; align-items: center; margin: 16px 0;">
         <fluent-text-field type="number" id="newQuitAge" placeholder="${quitAge}" value="${quitAge}" style="flex: 1;"></fluent-text-field>
@@ -1474,7 +1448,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
       <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">快速对比</h3>
       <div id="comparison-table"></div>
       
-      <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">💬 个性化建议</h3>
+      <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">个性化建议</h3>
       <div id="advice-container"></div>
     </div>
 
