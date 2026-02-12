@@ -846,9 +846,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const option = document.createElement('fluent-option');
     option.value = y;
     option.textContent = y + '年';
-    if (y === 1988) option.selected = true;
     yearSelect.appendChild(option);
   }
+  // 设置默认值
+  yearSelect.value = '1988';
 });
 
 function showForm() {
