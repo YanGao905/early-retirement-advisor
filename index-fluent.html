@@ -410,6 +410,46 @@
     font-size: 12px;
   }
 
+  /* 建议卡片样式 */
+  .advice-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--colorNeutralBackground2);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--colorNeutralStroke1);
+  }
+
+  .advice-item.success {
+    background: var(--colorStatusSuccessBackground1);
+    border-left-color: var(--colorStatusSuccessForeground1);
+  }
+
+  .advice-item.warning {
+    background: var(--colorStatusWarningBackground1);
+    border-left-color: var(--colorStatusWarningForeground1);
+  }
+
+  .advice-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .advice-item strong {
+    display: block;
+    color: var(--colorNeutralForeground1);
+    margin-bottom: 4px;
+  }
+
+  .advice-item p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--colorNeutralForeground2);
+    line-height: 1.5;
+  }
+
   .date-picker-row {
     display: flex;
     gap: 12px;
@@ -1223,7 +1263,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
         
         <!-- 年龄/事件行 -->
         <div class="timeline-events">
-          <span>${Math.round(ageNow)}岁·现在</span>
+          <span>${Math.round(ageNow)}岁</span>
           ${yearsWorking > 0.1 && (yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) >= 0.2 ? `<span class="event-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitAge}岁·辞职</span>` : ''}
           ${r.yearsWaiting > 0.1 && ((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) <= 0.8 ? `<span class="event-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${Math.round(r.stopPayAge)}岁·停缴</span>` : ''}
           <span>${actualClaimAge}岁·领取</span>
@@ -1318,6 +1358,9 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
       
       <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">快速对比</h3>
       <div id="comparison-table"></div>
+      
+      <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">💬 个性化建议</h3>
+      <div id="advice-container"></div>
     </div>
 
     <div style="text-align: center; margin-top: 24px;">
@@ -1347,25 +1390,36 @@ function generateComparison(currentAge) {
   const legalAge = flexRange.legalAge;
   const stopAtMinYears = currentStrategy === 'min';
   
-  // 生成对比的年龄：当前年龄+2, 当前年龄+5, 当前年龄+8, 法定退休-3
   const claimAge = currentClaimAge || legalAge;
+  
+  // 生成对比的年龄：立刻辞职、用户选择、+3年、+5年
   const ages = [
-    Math.max(ageNow + 2, currentAge - 3),
+    Math.ceil(ageNow), // 立刻辞职
     currentAge,
     Math.min(currentAge + 3, claimAge),
     Math.min(currentAge + 5, claimAge),
   ].filter((v, i, a) => a.indexOf(v) === i && v >= ageNow && v <= claimAge).sort((a, b) => a - b);
   
+  // 计算每个年龄的结果，找出最优方案
+  const results = ages.map(age => {
+    const r = computeRetirement(age, stopAtMinYears, claimAge);
+    return { age, ...r };
+  });
+  
+  const bestResult = results.reduce((best, r) => r.netGain > best.netGain ? r : best, results[0]);
+  
   let html = '<table class="data-table">';
   html += '<tr><th>辞职年龄</th><th>自费投入</th><th>月养老金</th><th>净收益(80岁)</th></tr>';
   
-  for (const age of ages) {
-    const r = computeRetirement(age, stopAtMinYears, claimAge);
-    const isCurrent = age === currentAge;
+  for (const r of results) {
+    const isCurrent = r.age === currentAge;
+    const isBest = r.age === bestResult.age;
     const rowClass = isCurrent ? 'highlight' : '';
     const gainColor = isCurrent ? '' : (r.netGain > 0 ? 'color: var(--colorStatusSuccessForeground1)' : 'color: var(--colorStatusDangerForeground1)');
+    const label = r.age === Math.ceil(ageNow) ? ' (立刻)' : '';
+    const bestLabel = isBest && !isCurrent ? ' 💰' : '';
     html += `<tr class="${rowClass}">
-      <td><strong>${age} 岁</strong>${isCurrent ? ' ✓' : ''}</td>
+      <td><strong>${r.age} 岁</strong>${label}${isCurrent ? ' ✓' : ''}${bestLabel}</td>
       <td>¥${(r.totalFlexCost/10000).toFixed(1)}万</td>
       <td>¥${Math.round(r.monthlyPension)}</td>
       <td style="${gainColor}">¥${(r.netGain/10000).toFixed(1)}万</td>
@@ -1374,6 +1428,119 @@ function generateComparison(currentAge) {
   
   html += '</table>';
   document.getElementById('comparison-table').innerHTML = html;
+  
+  // 生成建议
+  generateAdvice(currentAge, results, ageNow, claimAge, stopAtMinYears);
+}
+
+function generateAdvice(currentAge, results, ageNow, claimAge, stopAtMinYears) {
+  const currentResult = results.find(r => r.age === currentAge);
+  const immediateResult = results.find(r => r.age === Math.ceil(ageNow));
+  
+  let advice = [];
+  
+  // 1. 核心建议：计算"每年自由时间的价值"
+  if (immediateResult && currentAge > Math.ceil(ageNow)) {
+    const freeYears = currentAge - Math.ceil(ageNow);
+    const moneyDiff = currentResult.netGain - immediateResult.netGain;
+    const pensionDiff = currentResult.monthlyPension - immediateResult.monthlyPension;
+    const yearlyValue = moneyDiff / freeYears;
+    
+    if (moneyDiff > 0) {
+      // 晚退休确实能多赚钱
+      advice.push(`<div class="advice-item">
+        <span class="advice-icon">⏰</span>
+        <div>
+          <strong>你的自由时间值多少钱？</strong>
+          <p>继续工作到 ${currentAge} 岁，比现在辞职多赚 ¥${(moneyDiff/10000).toFixed(1)} 万<br>
+          换算下来，每多工作1年 ≈ 多赚 ¥${(yearlyValue/10000).toFixed(1)} 万<br>
+          <span style="color: var(--colorNeutralForeground3)">如果你觉得一年自由值 ${(yearlyValue/10000).toFixed(1)} 万以上，现在就辞！</span></p>
+        </div>
+      </div>`);
+      
+      // 月养老金差异
+      if (pensionDiff > 100) {
+        advice.push(`<div class="advice-item">
+          <span class="advice-icon">📈</span>
+          <div>
+            <strong>月养老金差 ¥${Math.round(pensionDiff)}</strong>
+            <p>现在辞职：月领 ¥${Math.round(immediateResult.monthlyPension)}<br>
+            ${currentAge}岁辞职：月领 ¥${Math.round(currentResult.monthlyPension)}<br>
+            <span style="color: var(--colorNeutralForeground3)">多工作 ${freeYears} 年换来每月多 ¥${Math.round(pensionDiff)}，你觉得值吗？</span></p>
+          </div>
+        </div>`);
+      }
+    } else {
+      // 早退休反而更划算（罕见情况）
+      advice.push(`<div class="advice-item success">
+        <span class="advice-icon">🏖️</span>
+        <div>
+          <strong>恭喜！现在辞职最划算</strong>
+          <p>立刻辞职不仅能早享受 ${freeYears} 年自由，还能多赚 ¥${(-moneyDiff/10000).toFixed(1)} 万！<br>
+          工作越久反而越亏，建议早走</p>
+        </div>
+      </div>`);
+    }
+  }
+  
+  // 2. 缴费策略建议
+  const fullR = computeRetirement(currentAge, false, claimAge);
+  const minR = computeRetirement(currentAge, true, claimAge);
+  const strategyDiff = Math.abs(fullR.netGain - minR.netGain);
+  
+  if (strategyDiff > 10000) { // 差异超过1万才建议
+    if (fullR.netGain > minR.netGain) {
+      advice.push(`<div class="advice-item ${!stopAtMinYears ? 'success' : ''}">
+        <span class="advice-icon">💰</span>
+        <div>
+          <strong>${stopAtMinYears ? '换成"缴到退休"更划算' : '你选的缴费策略正确'}</strong>
+          <p>缴到领取年龄比缴满即停多赚 ¥${(strategyDiff/10000).toFixed(1)} 万</p>
+        </div>
+      </div>`);
+    } else {
+      advice.push(`<div class="advice-item ${stopAtMinYears ? 'success' : ''}">
+        <span class="advice-icon">💰</span>
+        <div>
+          <strong>${!stopAtMinYears ? '换成"缴满即停"更划算' : '你选的缴费策略正确'}</strong>
+          <p>缴满20年即停比一直缴多赚 ¥${(strategyDiff/10000).toFixed(1)} 万</p>
+        </div>
+      </div>`);
+    }
+  }
+  
+  // 3. 风险提示
+  if (!currentResult.pensionOK) {
+    advice.push(`<div class="advice-item warning">
+      <span class="advice-icon">⚠️</span>
+      <div>
+        <strong>注意：养老保险年限不足</strong>
+        <p>还差 ${currentResult.pensionShortfall.toFixed(1)} 年才能领养老金，需要继续缴费</p>
+      </div>
+    </div>`);
+  }
+  
+  if (!currentResult.medicalOK) {
+    advice.push(`<div class="advice-item warning">
+      <span class="advice-icon">⚠️</span>
+      <div>
+        <strong>医保需补缴 ${currentResult.medicalShortfall.toFixed(1)} 年</strong>
+        <p>约 ¥${(currentResult.medicalExtraCost/10000).toFixed(1)} 万，已计入总成本</p>
+      </div>
+    </div>`);
+  }
+  
+  // 4. 如果没有任何建议，给个通用提示
+  if (advice.length === 0) {
+    advice.push(`<div class="advice-item">
+      <span class="advice-icon">ℹ️</span>
+      <div>
+        <strong>试试调整辞职年龄看看变化</strong>
+        <p>在上方输入不同年龄，对比不同方案的收益差异</p>
+      </div>
+    </div>`);
+  }
+  
+  document.getElementById('advice-container').innerHTML = advice.join('');
 }
 </script>
 </body>
