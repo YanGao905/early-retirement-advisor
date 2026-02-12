@@ -768,16 +768,16 @@
       <div class="form-field">
         <label>性别</label>
         <fluent-select id="gender">
-          <fluent-option value="female">女</fluent-option>
           <fluent-option value="male">男</fluent-option>
+          <fluent-option value="female">女</fluent-option>
         </fluent-select>
       </div>
 
       <div class="form-field">
         <label>是否北京户籍</label>
         <fluent-select id="hukou">
-          <fluent-option value="no">否</fluent-option>
           <fluent-option value="yes">是</fluent-option>
+          <fluent-option value="no">否</fluent-option>
         </fluent-select>
       </div>
 
@@ -846,6 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const option = document.createElement('fluent-option');
     option.value = y;
     option.textContent = y + '年';
+    if (y === 1988) option.selected = true;
     yearSelect.appendChild(option);
   }
 });
