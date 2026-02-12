@@ -8,55 +8,76 @@
 <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
 <style>
   :root {
-    --colorNeutralBackground1: #fafafa;
+    --colorNeutralBackground1: #f5f5f5;
     --colorNeutralBackground2: #ffffff;
+    --colorNeutralBackground3: #f0f0f0;
+    --colorBrandPrimary: #4A5FDB;
+    --colorBrandHover: #3D4FB8;
+    --colorBrandSubtle: #E8EBFA;
     --colorBrandBackground: #0078d4;
     --colorBrandBackgroundHover: #106ebe;
     --colorNeutralForeground1: #242424;
     --colorNeutralForeground2: #616161;
+    --colorNeutralForeground3: #9e9e9e;
     --colorStatusSuccessBackground1: #dff6dd;
     --colorStatusSuccessForeground1: #107c10;
     --colorStatusDangerBackground1: #fde7e9;
     --colorStatusDangerForeground1: #c50f1f;
-    --colorNeutralStroke1: #d1d1d1;
+    --colorNeutralStroke1: #e0e0e0;
+    --colorNeutralStroke2: #d1d1d1;
+    --shadow2: 0 1px 2px rgba(0,0,0,0.06);
     --shadow4: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-    --shadow8: 0 4px 8px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.08);
-    --borderRadius: 8px;
+    --shadow8: 0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow16: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+    --borderRadius: 12px;
+    --borderRadiusLarge: 16px;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 
   body {
     margin: 0;
     font-family: "Segoe UI", "Segoe UI Web", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
-    background: var(--colorNeutralBackground1);
+    background: linear-gradient(180deg, var(--colorBrandSubtle) 0%, var(--colorNeutralBackground1) 300px);
     color: var(--colorNeutralForeground1);
     line-height: 1.5;
+    min-height: 100vh;
   }
 
   .container {
     max-width: 640px;
     margin: 0 auto;
-    padding: 24px 16px;
+    padding: 32px 20px;
   }
 
   .card {
     background: var(--colorNeutralBackground2);
-    border-radius: var(--borderRadius);
-    padding: 24px;
-    margin: 16px 0;
-    box-shadow: var(--shadow4);
+    border-radius: var(--borderRadiusLarge);
+    padding: 28px;
+    margin: 20px 0;
+    box-shadow: var(--shadow8);
+    border: 1px solid var(--colorNeutralStroke1);
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow16);
   }
 
   h1 {
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 32px;
+    font-weight: 700;
     margin: 0 0 8px;
     color: var(--colorNeutralForeground1);
+    letter-spacing: -0.5px;
   }
 
   h2 {
     font-size: 20px;
     font-weight: 600;
-    margin: 0 0 16px;
+    margin: 0 0 20px;
     color: var(--colorNeutralForeground1);
   }
 
@@ -66,28 +87,28 @@
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--colorNeutralForeground2);
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
 
   .form-field {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
 
   .form-field label {
     display: block;
     font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 6px;
+    font-weight: 600;
+    margin-bottom: 8px;
     color: var(--colorNeutralForeground1);
   }
 
   .hint {
     font-size: 12px;
     color: var(--colorNeutralForeground2);
-    margin-top: 4px;
-    line-height: 1.4;
+    margin-top: 6px;
+    line-height: 1.5;
   }
 
   fluent-text-field, fluent-select, fluent-number-field {
@@ -110,13 +131,101 @@
     background: #fde7e9 !important;
   }
 
+  /* Hero Card */
+  .hero-card {
+    text-align: center;
+    padding: 48px 32px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--colorBrandSubtle) 100%);
+    border: none;
+  }
+
+  .hero-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .primary-btn {
+    background: var(--colorBrandPrimary);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 12px rgba(74, 95, 219, 0.3);
+    font-family: inherit;
+  }
+
+  .primary-btn:hover {
+    background: var(--colorBrandHover);
+    box-shadow: 0 6px 20px rgba(74, 95, 219, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .primary-btn:active {
+    transform: translateY(0);
+  }
+
+  .secondary-btn {
+    background: transparent;
+    color: var(--colorNeutralForeground1);
+    border: 1px solid var(--colorNeutralStroke2);
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: var(--borderRadius);
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+  }
+
+  .secondary-btn:hover {
+    background: var(--colorNeutralBackground3);
+    border-color: var(--colorNeutralStroke1);
+  }
+
+  .hero-card h1 {
+    font-size: 36px;
+    background: linear-gradient(135deg, var(--colorNeutralForeground1) 0%, var(--colorBrandPrimary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--colorNeutralForeground2);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .hero-features {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .feature-tag {
+    font-size: 12px;
+    color: var(--colorNeutralForeground2);
+    background: rgba(255,255,255,0.8);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--colorNeutralStroke1);
+  }
+
   .btn-group {
     display: flex;
     gap: 12px;
-    margin-top: 24px;
+    margin-top: 28px;
   }
 
-  .btn-group fluent-button {
+  .btn-group button {
     flex: 1;
   }
 
@@ -191,16 +300,24 @@
   /* Result styles */
   .stat-card {
     background: var(--colorNeutralBackground2);
-    border-radius: var(--borderRadius);
-    padding: 20px;
-    margin: 12px 0;
-    box-shadow: var(--shadow4);
+    border-radius: var(--borderRadiusLarge);
+    padding: 24px;
+    margin: 16px 0;
+    box-shadow: var(--shadow8);
+    border: 1px solid var(--colorNeutralStroke1);
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+
+  .stat-card:hover {
+    box-shadow: var(--shadow16);
+    transform: translateY(-2px);
   }
 
   .stat-value {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 700;
     margin: 8px 0;
+    letter-spacing: -0.5px;
   }
 
   .stat-value.positive {
@@ -208,7 +325,7 @@
   }
 
   .stat-value.negative {
-    color: var(--colorStatusDangerForeground1);
+    color: #e85d04;
   }
 
   .data-table {
@@ -225,20 +342,37 @@
   }
 
   .data-table th, .data-table td {
-    padding: 12px 0;
-    text-align: left;
+    padding: 12px 16px;
     font-size: 14px;
+    text-align: right;
+  }
+
+  .data-table th:first-child, .data-table td:first-child {
+    text-align: left;
+    padding-left: 0;
+  }
+
+  .data-table th:last-child, .data-table td:last-child {
+    padding-right: 0;
   }
 
   .data-table th {
     color: var(--colorNeutralForeground2);
-    font-weight: 400;
+    font-weight: 500;
   }
 
   .data-table td {
     color: var(--colorNeutralForeground1);
     font-weight: 500;
-    text-align: right;
+  }
+
+  /* 蓝色背景行 - 白色文字 */
+  .data-table tr.highlight {
+    background: var(--colorBrandPrimary);
+  }
+
+  .data-table tr.highlight td {
+    color: white !important;
   }
 
   .badge {
@@ -292,37 +426,46 @@
   }
 
   /* 对比表格高亮行 */
-  .data-table tr[style*="background"] td {
+  .data-table tr.highlight {
+    border-radius: 8px;
+  }
+  
+  .data-table tr.highlight td {
     border-color: transparent;
   }
 
   /* Tab 样式 */
   .strategy-tabs {
     display: flex;
-    border-bottom: 1px solid var(--colorNeutralStroke1);
-    margin-bottom: 20px;
+    gap: 8px;
+    background: var(--colorNeutralBackground3);
+    padding: 4px;
+    border-radius: var(--borderRadius);
+    margin-bottom: 24px;
   }
   
   .strategy-tab {
-    padding: 12px 20px;
+    flex: 1;
+    padding: 12px 16px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--colorNeutralForeground2);
-    background: none;
+    background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: calc(var(--borderRadius) - 2px);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s;
   }
   
   .strategy-tab:hover {
     color: var(--colorNeutralForeground1);
-    background: var(--colorNeutralBackground1Hover);
+    background: rgba(255,255,255,0.5);
   }
   
   .strategy-tab.active {
-    color: var(--colorBrandForeground1);
-    border-bottom-color: var(--colorBrandForeground1);
+    color: var(--colorBrandPrimary);
+    background: var(--colorNeutralBackground2);
+    box-shadow: var(--shadow4);
   }
   
   .strategy-tab .tab-subtitle {
@@ -334,47 +477,54 @@
   }
   
   .strategy-tab.active .tab-subtitle {
-    color: var(--colorBrandForeground2);
+    color: var(--colorBrandPrimary);
+    opacity: 0.7;
   }
 
   /* 弹性退休年龄选择按钮 */
   .claim-age-btn {
-    padding: 8px 14px;
-    font-size: 13px;
-    border: 1px solid var(--colorNeutralStroke1);
-    border-radius: 6px;
-    background: var(--colorNeutralBackground1);
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 2px solid var(--colorNeutralStroke1);
+    border-radius: var(--borderRadius);
+    background: var(--colorNeutralBackground2);
     color: var(--colorNeutralForeground2);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
   }
   
   .claim-age-btn:hover {
-    border-color: var(--colorBrandStroke1);
-    background: var(--colorBrandBackground2);
+    border-color: var(--colorBrandPrimary);
+    background: var(--colorBrandSubtle);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow8);
   }
   
   .claim-age-btn.active {
-    border-color: var(--colorBrandForeground1);
-    background: var(--colorBrandBackground);
+    border-color: var(--colorBrandPrimary);
+    background: var(--colorBrandPrimary);
     color: white;
+    box-shadow: 0 4px 12px rgba(74, 95, 219, 0.3);
+    transform: translateY(-2px);
   }
   
   .claim-age-btn .legal-tag,
   .claim-age-btn .early-tag,
   .claim-age-btn .delay-tag {
     font-size: 10px;
-    padding: 1px 4px;
-    border-radius: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
   }
   
   .claim-age-btn .legal-tag {
-    background: var(--colorNeutralBackground4);
-    color: var(--colorNeutralForeground2);
+    background: var(--colorBrandSubtle);
+    color: var(--colorBrandPrimary);
   }
   
   .claim-age-btn .early-tag {
@@ -467,11 +617,18 @@
     margin-top: 6px;
     font-size: 11px;
     color: var(--colorNeutralForeground2);
+    height: 16px;
   }
   
   .timeline-events .event-mid {
     position: absolute;
     transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  
+  /* 当位置太近时隐藏中间标签 */
+  .timeline-events .event-mid.hidden {
+    display: none;
   }
   
   .timeline-legend {
@@ -505,13 +662,19 @@
 
 <div class="container">
 
-  <!-- 首页 -->
-  <div id="home" class="card">
+  <!-- 首页 Hero -->
+  <div id="home" class="card hero-card">
+    <div class="hero-icon">🏖️</div>
     <h1>我什么时候可以退休？</h1>
     <p class="subtitle">提前退休规划模拟器（北京）</p>
-    <p>输入你的社保情况和计划辞职年龄，自动根据户籍计算辞职后需缴纳的社保费用，帮你权衡提前退休的得失。</p>
-    <div style="margin-top: 24px;">
-      <fluent-button appearance="accent" onclick="showForm()">开始测算</fluent-button>
+    <p class="hero-desc">输入你的社保情况和计划辞职年龄，自动根据户籍计算辞职后需缴纳的社保费用，帮你权衡提前退休的得失。</p>
+    <div style="margin-top: 28px;">
+      <button onclick="showForm()" class="primary-btn">开始测算</button>
+    </div>
+    <div class="hero-features">
+      <span class="feature-tag">✓ 2024新政策</span>
+      <span class="feature-tag">✓ 弹性退休</span>
+      <span class="feature-tag">✓ 医保测算</span>
     </div>
   </div>
 
@@ -579,8 +742,8 @@
       </div>
 
       <div class="btn-group">
-        <fluent-button appearance="outline" onclick="showHome()">返回</fluent-button>
-        <fluent-button appearance="accent" onclick="nextStep(1)">下一步</fluent-button>
+        <button class="secondary-btn" onclick="showHome()">返回</button>
+        <button class="primary-btn" onclick="nextStep(1)">下一步</button>
       </div>
     </div>
 
@@ -600,8 +763,8 @@
       </div>
 
       <div class="btn-group">
-        <fluent-button appearance="outline" onclick="prevStep(2)">上一步</fluent-button>
-        <fluent-button appearance="accent" onclick="nextStep(2)">下一步</fluent-button>
+        <button class="secondary-btn" onclick="prevStep(2)">上一步</button>
+        <button class="primary-btn" onclick="nextStep(2)">下一步</button>
       </div>
     </div>
 
@@ -620,8 +783,8 @@
       </div>
 
       <div class="btn-group">
-        <fluent-button appearance="outline" onclick="prevStep(3)">上一步</fluent-button>
-        <fluent-button appearance="accent" onclick="calculate()">查看结果</fluent-button>
+        <button class="secondary-btn" onclick="prevStep(3)">上一步</button>
+        <button class="primary-btn" onclick="calculate()">查看结果</button>
       </div>
     </div>
   </div>
@@ -1040,8 +1203,8 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
         <!-- 年份行 -->
         <div class="timeline-years">
           <span>${nowYear}</span>
-          ${yearsWorking > 0.1 ? `<span class="year-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitYear}</span>` : ''}
-          ${r.yearsWaiting > 0.1 ? `<span class="year-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${stopPayYear}</span>` : ''}
+          ${yearsWorking > 0.1 && (yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) >= 0.2 ? `<span class="year-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitYear}</span>` : ''}
+          ${r.yearsWaiting > 0.1 && ((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) <= 0.8 ? `<span class="year-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${stopPayYear}</span>` : ''}
           <span>${claimYear}</span>
         </div>
         
@@ -1061,8 +1224,8 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
         <!-- 年龄/事件行 -->
         <div class="timeline-events">
           <span>${Math.round(ageNow)}岁·现在</span>
-          ${yearsWorking > 0.1 ? `<span class="event-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitAge}岁·辞职</span>` : ''}
-          ${r.yearsWaiting > 0.1 ? `<span class="event-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${Math.round(r.stopPayAge)}岁·停缴</span>` : ''}
+          ${yearsWorking > 0.1 && (yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) >= 0.2 ? `<span class="event-mid" style="left: ${(yearsWorking / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${quitAge}岁·辞职</span>` : ''}
+          ${r.yearsWaiting > 0.1 && ((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) <= 0.8 ? `<span class="event-mid" style="left: ${((yearsWorking + yearsFlexPay) / (yearsWorking + yearsFlexPay + r.yearsWaiting)) * 100}%;">${Math.round(r.stopPayAge)}岁·停缴</span>` : ''}
           <span>${actualClaimAge}岁·领取</span>
         </div>
         
@@ -1150,7 +1313,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
       <p class="hint">调整辞职年龄，比较不同方案的差异</p>
       <div style="display: flex; gap: 12px; align-items: center; margin: 16px 0;">
         <fluent-text-field type="number" id="newQuitAge" placeholder="${quitAge}" value="${quitAge}" style="flex: 1;"></fluent-text-field>
-        <fluent-button appearance="accent" onclick="tryNewAge()">重新计算</fluent-button>
+        <button class="primary-btn" onclick="tryNewAge()" style="padding: 12px 24px;">重新计算</button>
       </div>
       
       <h3 style="font-size: 14px; margin: 20px 0 12px; color: var(--colorNeutralForeground2);">快速对比</h3>
@@ -1158,7 +1321,7 @@ function showResult(quitAge, strategy = currentStrategy, claimAge = currentClaim
     </div>
 
     <div style="text-align: center; margin-top: 24px;">
-      <fluent-button appearance="outline" onclick="location.reload()">重新填写信息</fluent-button>
+      <button class="secondary-btn" onclick="location.reload()">重新填写信息</button>
     </div>
 
     <div class="footer">
@@ -1199,14 +1362,13 @@ function generateComparison(currentAge) {
   for (const age of ages) {
     const r = computeRetirement(age, stopAtMinYears, claimAge);
     const isCurrent = age === currentAge;
-    const rowStyle = isCurrent ? 'background: var(--colorBrandBackground); color: white;' : '';
-    html += `<tr style="${rowStyle}">
+    const rowClass = isCurrent ? 'highlight' : '';
+    const gainColor = isCurrent ? '' : (r.netGain > 0 ? 'color: var(--colorStatusSuccessForeground1)' : 'color: var(--colorStatusDangerForeground1)');
+    html += `<tr class="${rowClass}">
       <td><strong>${age} 岁</strong>${isCurrent ? ' ✓' : ''}</td>
       <td>¥${(r.totalFlexCost/10000).toFixed(1)}万</td>
       <td>¥${Math.round(r.monthlyPension)}</td>
-      <td style="color: ${!isCurrent ? (r.netGain > 0 ? 'var(--colorStatusSuccessForeground1)' : 'var(--colorStatusDangerForeground1)') : 'inherit'}">
-        ¥${(r.netGain/10000).toFixed(1)}万
-      </td>
+      <td style="${gainColor}">¥${(r.netGain/10000).toFixed(1)}万</td>
     </tr>`;
   }
   
